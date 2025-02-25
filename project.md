@@ -6,7 +6,7 @@ Group Project
 ``` r
 library(ggplot2)
 
-# Define logistic function
+# logistic function
 logistic <- function(z) {
   1 / (1 + exp(-z))
 }
@@ -246,9 +246,9 @@ test_time
 
     ## Unit: milliseconds
     ##  expr      min       lq     mean   median       uq      max neval
-    ##    MC 16.20951 16.23071 16.30034 16.28684 16.36236 16.45929    10
-    ##    CV 19.23786 19.49886 19.58981 19.59892 19.77061 19.96823    10
-    ##    IS 43.71231 44.04897 44.84207 44.38113 44.77196 47.80141    10
+    ##    MC 15.75626 15.99820 16.19890 16.16081 16.48327 16.64957    10
+    ##    CV 19.31563 19.53470 19.72941 19.74812 19.92493 20.18754    10
+    ##    IS 43.43483 43.85303 45.03283 44.15784 44.48090 49.17663    10
 
 - **Monte Carlo (MC)** is the fastest because it only generates random
   samples and computes the mean, with O(N) complexity and no additional
