@@ -1,0 +1,37 @@
+---
+title: "P8160 Simulation Project - Hierarchical Logistic Model for Mulit-Center Clinical Trial"
+author: "Group 3A: Kate Colvin, Xuanyu Guo, Dang Lin, and Boxiang Tang"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction and Background 
+
+
+
+# Statistical Methods 
+
+## 1. Initialization and Function Definitions
+
+## 2. Sampling from Simple Monte Carlo 
+
+## 3. Designing Control Variate (CV)
+
+## 4. Importance Sampling (IS)
+
+
+
+# Results 
+
+## 5. Comparing Bias, Variance, and CPU Time for Simple MC, Control variates, and Importance Sampling
+
+## 6. (Extra credit) Use cumulative convergence plots
+
+
+
+# Discussion and Practical Implications
+
+# Conclusion
