@@ -6,9 +6,11 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
 ```
 
 # Introduction and Background 
+
 
 
 
@@ -16,7 +18,52 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 1. Initialization and Function Definitions
 
+We specified the clinic random effect (b) as b ~ $t_5$ and the patient-level covariates (X) as X ~ Gamma(2, 1). 
+
+```{r}
+# logistic function
+logistic <- function(z) {
+  1 / (1 + exp(-z))
+}
+
+# Set model parameters
+alpha <- 0        # Intercept
+beta  <- 1        # Covariate coefficient
+
+# Define random generators for non-normal distributions 
+#                   of random effect b and covariate x
+# Example: b ~ t_5 (heavy-tailed distribution)
+r_b <- function(n) {
+  rt(n, df = 5)
+}
+
+# Example: x ~ Gamma(shape=2, rate=1)
+r_x <- function(n) {
+  rgamma(n, shape = 2, rate = 1)
+}
+
+```
+
 ## 2. Sampling from Simple Monte Carlo 
+
+```{r}
+
+simpleMC <- function(N) {
+  # Sample b from f(b)
+  b_samp <- r_b(N)
+  # Sample x from f(x)
+  x_samp <- r_x(N)
+  
+  # Compute p_i = logistic(alpha + b_i + beta*x_i)
+  p_values <- logistic(alpha + b_samp + beta * x_samp)
+  
+  # Simple MC estimate is the average of p_values
+  est <- mean(p_values)
+  
+  return(list(est = est))
+}
+
+```
 
 ## 3. Designing Control Variate (CV)
 

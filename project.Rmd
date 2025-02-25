@@ -22,8 +22,6 @@ r_b <- function(n) {
   rt(n, df = 5)
 }
 
-potentially using a diff dist. above ^
-
 # Example: x ~ Gamma(shape=2, rate=1)
 r_x <- function(n) {
   rgamma(n, shape = 2, rate = 1)
