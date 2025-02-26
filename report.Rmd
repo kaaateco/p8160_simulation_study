@@ -22,7 +22,36 @@ In this project, we designed a simulation study to determine optimal Monte Carlo
 
 # Statistical Methods 
 
+In order to evaluate our different Monte Carlo sampling stratgies, we created a synthetic data set meant to represent a hypothetical multicenter clinical trial. This data set includes patient-level covariates $X_i$ and clinic-level random effects $b_j$, which represents site-specific variables such as population demographics and differences in protocol. We specified the clinic random effect as ${b_j}$ ~ *INSERT DIST AND PARAMETERS HERE lol* and the patient level covariates as ${X_i}$ ~ *INSERT DIST AND PARAMETERS HERE lol*. 
+
+These random variables are used to estimate the population-level probability of an adverse event across all patients and clinics using the logit function below:
+
+
+\begin{center}
+
+test
+
+P (Adverse Event) =
+∫ ∫
+logit−1(α + b + βx)f (b)f (x)dbd
+
+\end{center}
+
+
+We evaluated three different Monte Carlo sampling methods: simple Monte Carlo (MC), MC with control variates (CV), and MC with importance sampling (IS) for evaluating the integral above. We estimated the "true" probability of an adverse event by using a simple Monte Carlo simulation with N = *FINAL N*. 
+
+
+
+the bias and variance in the predicted probability of an adverse event of three sampling methods: . We also compare the CPU time statistics for each method.
+
+
+
+
+
 *overall description of what we did, the code in this section specifies functions*
+
+
+
 
 ### 1. Initialization and Function Definitions
 
