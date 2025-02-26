@@ -1,5 +1,5 @@
 ---
-title: "P8160 Simulation Project - Hierarchical Logistic Model for Mulit-Center Clinical Trial"
+title: "P8160 Simulation Project - Hierarchical Logistic Model for Mulitcenter Clinical Trial"
 author: "Group 3A: Kate Colvin, Xuanyu Guo, Dang Lin, and Boxiang Tang"
 output: pdf_document
 ---
@@ -11,17 +11,13 @@ library(tidyverse)
 library(microbenchmark)
 ```
 
-# Introduction 
+# Introduction and Background
 
-*multicenter clinical trial???*
+A multicenter clinical trial is a trial that enrolls participants at multiple different medical institutions. These different trial sites can have different characteristics, such as patient demographics, treatment practices, or geographic factors, that impact the outcome of trial patients. Such variability between trial sites can complicate trial outcomes, and 
 
 
-In this project, our objective is to design a simulation study that estimates the population-level probability 
-of adverse events 
-
-We are interested in estimating the overall (population-level) probability of
-an adverse event, marginalizing over both X (across all patients) and the random effect distribution b
-(across all clinics)
+In this project, we designed a simulation study that estimates the population-level probability 
+of adverse events, accounting for differences in demographic variables between patients and across clinics.  
 
 
 
@@ -468,7 +464,7 @@ ggplot(df_all, aes(x = iter, y = estimate, color = method)) +
   labs(title = "Cumulative Mean Comparison",
        x = "Iteration",
        y = "Estimate") +
-  ylim(c(0.65, 0.8))
+  ylim(c(0.7, 0.8))
   theme_bw()
 
 ```
