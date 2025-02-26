@@ -6,7 +6,6 @@ output: github_document
 ```{r}
 library(ggplot2)
 
-# logistic function
 logistic <- function(z) {
   1 / (1 + exp(-z))
 }
