@@ -13,13 +13,9 @@ library(microbenchmark)
 
 # Introduction and Background
 
-A multicenter clinical trial is a trial that enrolls participants at multiple different medical institutions. These different trial sites can have different characteristics, such as patient demographics, treatment practices, or geographic factors, that impact the outcome of trial patients. Such variability between trial sites can complicate trial outcomes, and 
+A multicenter clinical trial is a trial that enrolls participants at multiple different medical institutions. These different trial sites can have different characteristics, such as patient demographics, treatment practices, or geographic factors, that impact the outcome of trial patients. Such variability between trial sites can complicate the statistical analysis, and possibly bias trial outcomes. In some cases, multicenter clinical trials have contradicted single-center trials [1]; therefore an important goal of statistical clinical trial research must be to create methods and guidelines for the reliable design and analysis of multicenter clinical trials. 
 
-
-In this project, we designed a simulation study that estimates the population-level probability 
-of adverse events, accounting for differences in demographic variables between patients and across clinics.  
-
-
+In this project, we designed a simulation study to determine optimal Monte Carlo sampling strategies to evaluate the population-level probability of adverse events in the context of a hypothetical multicenter clinical trial. This simulated trial includes patient-level covariates and clinic-level random effects that informs a heirarchical logistic model to predict the probability of adverse events. We evaluated the bias and variance in the predicted probability of an adverse event of three sampling methods: simple Monte Carlo (MC), MC with control variates (CV), and MC with importance sampling (IS). We also compare the CPU time statistics for each method. 
 
 
 # Statistical Methods 
@@ -472,4 +468,12 @@ ggplot(df_all, aes(x = iter, y = estimate, color = method)) +
 
 # Discussion and Practical Implications
 
+
 # Conclusion
+
+
+# References 
+
+1. Dechartres, Agnes, et al. "Single-center trials show larger treatment effects than multicenter trials: evidence from a meta-epidemiologic study." Annals of internal medicine 155.1 (2011): 39-51.
+
+2. Cheng, Adam, et al. "Conducting multicenter research in healthcare simulation: Lessons learned from the INSPIRE network." Advances in Simulation 2 (2017): 1-14.
