@@ -12,19 +12,19 @@ logistic <- function(z) {
 }
 
 # Set model parameters
-alpha <- 0        # Intercept
-beta  <- 1        # Covariate coefficient
+alpha <- -2        # Intercept
+beta  <- 0.5        # Covariate coefficient
 
 # Define random generators for non-normal distributions 
 #                   of random effect b and covariate x
-# Example: b ~ t_5 (heavy-tailed distribution)
+# b ~ t_5 (heavy-tailed distribution)
 r_b <- function(n) {
-  rt(n, df = 5)
+  rlnorm(n, meanlog = -1, sdlog = 0.5)
 }
 
-# Example: x ~ Gamma(shape=2, rate=1)
+# x ~ Gamma(shape=2, rate=1)
 r_x <- function(n) {
-  rgamma(n, shape = 2, rate = 1)
+  rgamma(n, shape = 2, rate = 2)
 }
 ```
 
@@ -172,7 +172,7 @@ true_value <- res_truth$est
 cat("Approx. True Value =", true_value, "\n")
 ```
 
-    ## Approx. True Value = 0.7859166
+    ## Approx. True Value = 0.2599716
 
 ``` r
 # 5.2. Repeat simulations for smaller N and compare bias, variance
@@ -226,9 +226,9 @@ df_comparison
 ```
 
     ##   method  mean_est          bias     variance
-    ## 1     MC 0.7857719 -0.0001446686 4.415522e-07
-    ## 2     CV 0.7857767 -0.0001399315 8.385587e-09
-    ## 3     IS 0.7855314 -0.0003851632 3.016384e-06
+    ## 1     MC 0.2599706 -9.988906e-07 9.129788e-08
+    ## 2     CV 0.2601356  1.640618e-04 6.386389e-09
+    ## 3     IS 0.3200838  6.011218e-02 8.068068e-07
 
 ``` r
 # 5.3 Compare CPU time
@@ -246,9 +246,9 @@ test_time
 
     ## Unit: milliseconds
     ##  expr      min       lq     mean   median       uq      max neval
-    ##    MC 15.75626 15.99820 16.19890 16.16081 16.48327 16.64957    10
-    ##    CV 19.31563 19.53470 19.72941 19.74812 19.92493 20.18754    10
-    ##    IS 43.43483 43.85303 45.03283 44.15784 44.48090 49.17663    10
+    ##    MC 18.03061 18.37866 19.49526 18.66958 18.83122 27.84675    10
+    ##    CV 23.57791 24.32173 24.46095 24.49158 24.60759 25.42344    10
+    ##    IS 76.51502 77.05323 77.95181 77.25929 77.90385 84.23540    10
 
 - **Monte Carlo (MC)** is the fastest because it only generates random
   samples and computes the mean, with O(N) complexity and no additional

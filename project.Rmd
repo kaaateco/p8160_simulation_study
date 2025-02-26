@@ -12,19 +12,19 @@ logistic <- function(z) {
 }
 
 # Set model parameters
-alpha <- 0        # Intercept
-beta  <- 1        # Covariate coefficient
+alpha <- -2        # Intercept
+beta  <- 0.5        # Covariate coefficient
 
 # Define random generators for non-normal distributions 
 #                   of random effect b and covariate x
-# Example: b ~ t_5 (heavy-tailed distribution)
+# b ~ t_5 (heavy-tailed distribution)
 r_b <- function(n) {
-  rt(n, df = 5)
+  rlnorm(n, meanlog = -1, sdlog = 0.5)
 }
 
-# Example: x ~ Gamma(shape=2, rate=1)
+# x ~ Gamma(shape=2, rate=1)
 r_x <- function(n) {
-  rgamma(n, shape = 2, rate = 1)
+  rgamma(n, shape = 2, rate = 2)
 }
 ```
 ## 2. Simple Monte Carlo (MC)
