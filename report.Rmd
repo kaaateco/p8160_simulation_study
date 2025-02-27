@@ -93,10 +93,13 @@ knitr::kable(p_baseline_adverse_event, digits = 6,
              col.names = "Probability of the Baseline Adverse Event")
 ```
 
-Using simple Monte Carlo with N = 100000: $P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{N}logit^{-1}(x_i, b_i)$
+Using simple Monte Carlo with n = 100000: $P_{Simple}(Adverse Event) = \frac1n \sum_{i=1}^{n}logit^{-1}(x_i, b_i)$
 
 ```{r message = FALSE}
 start_time_smc <- Sys.time()
+
+alpha <- -2
+beta <- 0.5
 
 logit_inverse_function <- function(x) {
   return(exp(x) / (1 + exp(x)))
@@ -114,6 +117,7 @@ cpu_time_smc <- Sys.time() - start_time_smc
 ##             col.names = "Probability of the Adverse Event of Simple MC Sampling")
 ```
 
+In Simple Monte Carlo sampling, random samples `b_samples` and `x_samples` are generated to estimate the overall probability of an adverse event. Firstly, the parameters $\alpha$ and $\beta$ are defined, and the logit inverse function is applied to compute the probability of an adverse event for each individual sample. The overall probability estimate is then obtained by averaging these probabilities, while the variance of the method is calculated based on the individual probability values from each sample.
 
 ### Task 3: Sampling using Control Variate (CV)
 
