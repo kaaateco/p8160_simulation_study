@@ -155,6 +155,8 @@ control_variate_df <- data.frame(
 ##             caption = "Comparison of Estimates With and Without Control Variate")
 ```
 
+The Control Variates method is used to improve the efficiency of Monte Carlo estimation by reducing variance through the use of a correlated control variate. Firstly, the probability of an adverse event is estimated using the logit inverse function applied to the Patient-Level sampled covariates and Clinic-Level random effects. Then, a control variate $U$ is computed as the linear predictor before the logit transformation. The optimal correction coefficient $c^*$ is calculated based on the covariance method. Finally, the overall probability estimate is obtained by applying the control variate correction, reducing variance without introducing bias. The efficiency of this method is evaluated by comparing the mean and variance of the estimates before and after the correction.
+
 ### Task 4: Sampling using Importance Sampling (IS)
 
 ```{r message = FALSE}
