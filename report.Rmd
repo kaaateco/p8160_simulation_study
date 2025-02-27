@@ -1,7 +1,7 @@
 ---
-title: "Hierarchical Logistic Model for mulit-center clinical trial"
-subtitle: "P8160 - Group Project"
-author: "Group 3A: Kate Colvin (kac2301), Xuanyu Guo(xg2451), Dang Lin (dl3757), and Boxiang Tang (bt2654)"
+title: "Hierarchical Logistic Model for Mulit-Center Clinical Trial"
+subtitle: "P8160 - Group 3A"
+author: "Kate Colvin (kac2301), Xuanyu Guo(xg2451), Dang Lin (dl3757), Boxiang Tang (bt2654)"
 date: "2025-03-03"
 output: pdf_document
 ---
@@ -22,7 +22,7 @@ In this project, we designed a simulation study to determine optimal Monte Carlo
 
 # Statistical Methods 
 
-In order to evaluate our different Monte Carlo sampling stratgies, we created a synthetic data set meant to represent a hypothetical multicenter clinical trial. This data set includes patient-level covariates $X_i$ and clinic-level random effects $b_j$, which represents site-specific variables such as population demographics and differences in protocol. In section 1 below, we specify the clinic random effect as ${b_j}$ ~ *INSERT DIST AND PARAMETERS HERE lol* and the patient level covariates as ${X_i}$ ~ *INSERT DIST AND PARAMETERS HERE lol*. 
+In order to evaluate our different Monte Carlo sampling stratgies, we created a synthetic data set meant to represent a hypothetical multicenter clinical trial. This data set includes patient-level covariates $X_i$ and clinic-level random effects $b_j$, which represents site-specific variables such as population demographics and differences in protocol. In section 1 below, we specify the clinic random effect as ${b_j}$ ~ Log-Normal(-1, 0.5), which is a heavy tailed distribution (i.e. decays slower than an Exponential distribution), and the patient level covariates were specified as ${X_i}$ ~ Gamma(2, 2). Distribution parameters were chosen to yield realistic estimates of adverse events. *CITATION?* 
 
 These random variables are used to estimate the population-level probability of an adverse event across all patients and clinics using the logit function below:
 
@@ -32,13 +32,13 @@ $P(Adverse Event) = \int\int logit^{-1}(\alpha + b + \beta x) f_B(b) f_X(x) dbdx
 
 \end{center}
 
-We evaluated three different Monte Carlo sampling methods: simple Monte Carlo (MC), MC with control variates (CV), and MC with importance sampling (IS) for evaluating the integral above. The equations for each method are given below, where ${X_i}$ and ${b_i}$ are selected from the appropriate probability distributions $f_X(x)$ and $f_B(b)$, respectively, $g(x_i, b_i)$ is a control variate with a known expectation value, $\mu_g$, and $h(x_i, b_i)$ is a easy to sample bivariate distribution that is non-zero over the same range as $f_X(x_i)f_B(b_i)$. 
+We evaluated three different Monte Carlo sampling methods: simple Monte Carlo (MC), MC with control variates (CV), and MC with importance sampling (IS) for evaluating the integral above. The equations for each method are given below, where ${X_i}$ and ${b_i}$ are selected from the appropriate probability distributions $f_X(x)$ and $f_B(b)$, respectively, $U(x_i, b_i)$ is a control variate with a known expectation value, $\mu_U$, and $h(x_i, b_i)$ is a easy to sample bivariate distribution that is non-zero over the same range as $f_X(x_i)f_B(b_i)$. 
 
 \begin{center}
 
 $P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{N}logit^{-1}(x_i, b_i)$
 
-$P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(x_i, b_i) - \beta(g(x_i, b_i)) - \mu_g)$
+$P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(x_i, b_i) - c^*(U(x_i, b_i)) - \mu_U)$
 
 $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{h(x_i, b_i)}logit^{-1}(x_i, b_i)$
 
@@ -48,16 +48,17 @@ For each method, we report the bias and variance in the predicted probability of
 
 In the sections below, we defined functions used to run the integrations using simple Monte Carlo (Section 2), control variates (Section 3), and importance sampling (Section 4) methods.
 
+### Task 1: Specifying Distributions
 
-## 1
-- Let b follows a Log-normal distribution with parameters meanlog = -1 and sdlog = 0.5.
-- Let x follows a Gamma distribution with parameters shape = 2 and rate = 2.
+Let b follow a Log-normal distribution with parameters meanlog = -1 and sdlog = 0.5, see graph below. 
 
-```{r message = FALSE}
+Let x follows a Gamma distribution with parameters shape = 2 and rate = 2, see graph below. 
+
+```{r message = FALSE, fig.align='center', out.width="100%"}
 set.seed(8160)
+n <- 100000 
 
-n <- 10000 
-
+## Pre-calculating b samples and x samples for use in simple MC and CV
 b_samples <- rlnorm(n, meanlog = -1, sdlog = 0.5)
 x_samples <- rgamma(n, shape = 2, rate = 2)
 
@@ -79,8 +80,10 @@ ggplot(gamma_df, aes(x = values)) +
   theme_minimal()
 ```
 
-## 2
-```{r message = FALSE}
+
+### Task 2: Sampling using Simple Monte Carlo (MC)
+
+```{r message = FALSE, include = FALSE}
 alpha <- -2
 beta <- 0.5
 
@@ -90,6 +93,8 @@ knitr::kable(p_baseline_adverse_event, digits = 6,
              col.names = "Probability of the Baseline Adverse Event")
 ```
 
+Using simple Monte Carlo with N = 100000: $P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{N}logit^{-1}(x_i, b_i)$
+
 ```{r message = FALSE}
 start_time_smc <- Sys.time()
 
@@ -97,6 +102,7 @@ logit_inverse_function <- function(x) {
   return(exp(x) / (1 + exp(x)))
 }
 
+## Calculating the probability of an adverse event based on pre-sampled b and x 
 p_ij <- logit_inverse_function(alpha + b_samples + beta * x_samples)
 
 p_adverse_event_smc <- mean(p_ij) 
@@ -104,11 +110,15 @@ var_smc <- var(p_ij)
 
 cpu_time_smc <- Sys.time() - start_time_smc
 
-knitr::kable(p_adverse_event_smc, digits = 6, 
-             col.names = "Probability of the Adverse Event of Simple MC Sampling")
+## knitr::kable(p_adverse_event_smc, digits = 6, 
+##             col.names = "Probability of the Adverse Event of Simple MC Sampling")
 ```
 
-## 3
+
+### Task 3: Sampling using Control Variate (CV)
+
+Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(x_i, b_i) - c^*(U(x_i, b_i)) - \mu_U)$
+
 ```{r message = FALSE}
 start_time_cv <- Sys.time()
 
@@ -116,6 +126,7 @@ Y <- logit_inverse_function(alpha + b_samples + beta * x_samples)
 E_Y <- mean(Y)
 var_Y <- var(Y)
 
+## U is on-logit transformed Y
 U <- alpha + b_samples + beta * x_samples
 E_U <- mean(U)
 var_U <- var(U)
@@ -123,6 +134,7 @@ var_U <- var(U)
 cov_Y_U <- cov(Y, U)
 c_star <- -cov_Y_U / var_U 
 
+## Applying covariate correction
 Y_cv <- Y + c_star * (U - E_U)
 E_Y_cv <- mean(Y_cv)
 var_Y_cv <- var_Y - (cov_Y_U ^ 2) / var_U
@@ -135,15 +147,14 @@ control_variate_df <- data.frame(
   With_Control_Variate = c(E_Y_cv, var_Y_cv)
 )
 
-knitr::kable(control_variate_df, digits = 10, 
-             caption = "Comparison of Estimates With and Without Control Variate")
+## knitr::kable(control_variate_df, digits = 10, 
+##             caption = "Comparison of Estimates With and Without Control Variate")
 ```
 
-## 4
+### Task 4: Sampling using Importance Sampling (IS)
+
 ```{r message = FALSE}
 set.seed(8160)
-
-n <- 10000
 
 b_samples_nominal <- rlnorm(n, meanlog = -1, sdlog = 0.5)
 x_samples_nominal <- rgamma(n, shape = 2, rate = 2)
@@ -210,18 +221,22 @@ importance_sampling_results <- data.frame(
   Value = c(E_is, var_is)
 )
 
-knitr::kable(importance_sampling_results, digits = 6,  
-             caption = "Importance Sampling Estimates for Adverse Event Probability")
+## knitr::kable(importance_sampling_results, digits = 6,  
+##             caption = "Importance Sampling Estimates for Adverse Event Probability")
 ```
 
-## 5
+
+# Results 
+
+### Task 5: Comparison of Sampling Methods
+
 ```{r message = FALSE}
 set.seed(8160)
 
-N <- 1000000
+N_true <- 1000000
 
-b_samples_N <- rlnorm(N, meanlog = -1, sdlog = 0.5)  
-x_samples_N <- rgamma(N, shape = 2, rate = 2)
+b_samples_N <- rlnorm(N_true, meanlog = -1, sdlog = 0.5)  
+x_samples_N <- rgamma(N_true, shape = 2, rate = 2)
 
 p_adverse_event_true <- mean(logit_inverse_function(alpha + b_samples_N + beta * x_samples_N)) 
 
@@ -241,7 +256,8 @@ knitr::kable(comparison_df, digits = 10,
       caption = "Comparison of Sampling Methods (Bias, Variance, and CPU Time)")
 ```
 
-## 6
+### Task 6: Cumulative Convergence Plots (Extra Credit)
+
 ```{r message = FALSE, warning = FALSE}
 cumulative_mc <- cumsum(p_ij) / seq_along(p_ij)
 cumulative_cv <- cumsum(Y_cv) / seq_along(Y_cv)
@@ -265,12 +281,6 @@ ggplot(cumulative_convergence_df, aes(x = Sample, y = Value, color = Method)) +
   theme_minimal() + 
   ylim(c(0.20, 0.30))
 ```
-
-
-
-
-
-
 
 
 # Discussion and Practical Implications
