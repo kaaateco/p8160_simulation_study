@@ -231,6 +231,9 @@ importance_sampling_results <- data.frame(
 ##             caption = "Importance Sampling Estimates for Adverse Event Probability")
 ```
 
+The Importance Sampling method is applied to estimate the overall probability of an adverse event by drawing samples from a carefully chosen importance distribution instead of the nominal distribution. The nominal distributions for the clinic-level random effects and patient-level covariates are modeled as Lognormal and Gamma distributions, respectively. To improve efficiency, we selected importance distributions that closely approximate the nominal distributions, covering their domains while having slightly heavier tails to ensure sufficient coverage of high-probability regions.
+
+To be more specific, the Lognormal importance distribution is adjusted by increasing the standard deviation, while the Gamma importance distribution is modified by slightly increasing the shape parameter. After generating samples from these distributions, we computed the probability of an adverse event and adjusted each sample’s contribution using importance weights, derived as the ratio of the nominal to the importance density. The final estimate is obtained as a weighted average, and the variance of the Importance Sampling estimator is calculated to evaluate its efficiency compared to other sampling methods.
 
 # Results 
 
