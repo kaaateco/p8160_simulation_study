@@ -9,6 +9,7 @@ output: pdf_document
 ```{r include = FALSE}
 library(tidyverse)
 library(ggplot2)
+library(MASS)
 ```
 
 # Introduction and Background
@@ -22,7 +23,7 @@ In this project, we designed a simulation study to determine optimal Monte Carlo
 
 # Statistical Methods 
 
-In order to evaluate our different Monte Carlo sampling stratgies, we created a synthetic data set meant to represent a hypothetical multicenter clinical trial. This data set includes patient-level covariates $X_i$ and clinic-level random effects $b_j$, which represents site-specific variables such as population demographics and differences in protocol. In section 1 below, we specify the clinic random effect as ${b_j}$ ~ Log-Normal(-1, 0.5), which is a heavy tailed distribution (i.e. decays slower than an Exponential distribution), and the patient level covariates were specified as ${X_i}$ ~ Gamma(2, 2). Distribution parameters were chosen to yield realistic estimates of adverse events. *CITATION?* 
+In order to evaluate our different Monte Carlo sampling stratgies, we created a synthetic data set meant to represent a hypothetical multicenter clinical trial. This data set includes patient-level covariates $X_i$ and clinic-level random effects $b_j$, which represents site-specific variables such as population demographics and differences in protocol. In section 1 below, we specify the clinic random effect as ${b_j}$ ~ Log-Normal(-1, 0.5), which is a heavy tailed distribution (i.e. decays slower than an Exponential distribution), and the patient level covariates were specified as ${X_i}$ ~ Gamma(2, 2). Distribution parameters were chosen to yield realistic estimates of adverse events [Luo, 2016].  
 
 These random variables are used to estimate the population-level probability of an adverse event across all patients and clinics using the logit function below:
 
@@ -32,7 +33,7 @@ $P(Adverse Event) = \int\int logit^{-1}(\alpha + b + \beta x) f_B(b) f_X(x) dbdx
 
 \end{center}
 
-We evaluated three different Monte Carlo sampling methods: simple Monte Carlo (MC), MC with control variates (CV), and MC with importance sampling (IS) for evaluating the integral above. The equations for each method are given below, where ${X_i}$ and ${b_i}$ are selected from the appropriate probability distributions $f_X(x)$ and $f_B(b)$, respectively, $U(x_i, b_i)$ is a control variate with a known expectation value, $\mu_U$, and $h(x_i, b_i)$ is a easy to sample bivariate distribution that is non-zero over the same range as $f_X(x_i)f_B(b_i)$. 
+We evaluated three different Monte Carlo sampling methods: simple Monte Carlo (MC), MC with control variates (CV), and MC with importance sampling (IS) for evaluating the integral above. The equations for each method are given below, where ${X_i}$ and ${b_i}$ are selected from the appropriate probability distributions $f_X(x)$ and $f_B(b)$, respectively, $U(x_i, b_i)$ is a control variate with a known expectation value, $\mu_U$, and $g_X(x_i)$ and $g_B(b_i)$ are easy to sample distributions that are non-zero over the same ranges as $f_X(x_i)$ and $f_B(b_i)$, respectively. 
 
 \begin{center}
 
@@ -40,7 +41,7 @@ $P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{N}logit^{-1}(x_i, b_i)$
 
 $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(x_i, b_i) - c^*(U(x_i, b_i)) - \mu_U)$
 
-$P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{h(x_i, b_i)}logit^{-1}(x_i, b_i)$
+$P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(x_i, b_i)$
 
 \end{center}
 
@@ -54,9 +55,9 @@ Let b follow a Log-normal distribution with parameters meanlog = -1 and sdlog = 
 
 Let x follows a Gamma distribution with parameters shape = 2 and rate = 2, see graph below. 
 
-```{r message = FALSE, fig.align='center', out.width="100%"}
+```{r message = FALSE, fig.align='center', out.width="85%"}
 set.seed(8160)
-n <- 100000 
+n <- 10000
 
 ## Pre-calculating b samples and x samples for use in simple MC and CV
 b_samples <- rlnorm(n, meanlog = -1, sdlog = 0.5)
@@ -117,7 +118,7 @@ cpu_time_smc <- Sys.time() - start_time_smc
 
 ### Task 3: Sampling using Control Variate (CV)
 
-Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(x_i, b_i) - c^*(U(x_i, b_i)) - \mu_U)$
+Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(x_i, b_i) - c^*(U(x_i, b_i)) - \mu_U)$, where the control variate (U) is the argument to the inverse logit function, $\alpha + b + \beta x$
 
 ```{r message = FALSE}
 start_time_cv <- Sys.time()
@@ -126,7 +127,7 @@ Y <- logit_inverse_function(alpha + b_samples + beta * x_samples)
 E_Y <- mean(Y)
 var_Y <- var(Y)
 
-## U is on-logit transformed Y
+## U is the logit transformed Y (i.e. the original argument to the inverse logit)
 U <- alpha + b_samples + beta * x_samples
 E_U <- mean(U)
 var_U <- var(U)
@@ -152,6 +153,10 @@ control_variate_df <- data.frame(
 ```
 
 ### Task 4: Sampling using Importance Sampling (IS)
+
+Using importance sampling: $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(x_i, b_i)$, where $g_X(x_i)$ ~ Gamma(2.4, 2) and $g_B(b_i)$ ~ Log-Normal(-1, 0.6). 
+
+First, we compare the nominal and importance distributions in the plots below: 
 
 ```{r message = FALSE}
 set.seed(8160)
@@ -179,6 +184,8 @@ ggplot(x_df, aes(x = Value, fill = Distribution)) +
        x = "x Value", y = "Density") +
   theme_minimal()
 ```
+
+Here, we define the nominal and importance functions and implement the importance sampling: 
 
 ```{r message = FALSE}
 set.seed(8160)
@@ -221,8 +228,8 @@ importance_sampling_results <- data.frame(
   Value = c(E_is, var_is)
 )
 
-## knitr::kable(importance_sampling_results, digits = 6,  
-##             caption = "Importance Sampling Estimates for Adverse Event Probability")
+knitr::kable(importance_sampling_results, digits = 6,  
+             caption = "Importance Sampling Estimates for Adverse Event Probability")
 ```
 
 
@@ -233,7 +240,7 @@ importance_sampling_results <- data.frame(
 ```{r message = FALSE}
 set.seed(8160)
 
-N_true <- 1000000
+N_true <- 10000000
 
 b_samples_N <- rlnorm(N_true, meanlog = -1, sdlog = 0.5)  
 x_samples_N <- rgamma(N_true, shape = 2, rate = 2)
@@ -279,7 +286,7 @@ ggplot(cumulative_convergence_df, aes(x = Sample, y = Value, color = Method)) +
        y = "Probability",
        color = "Sampling Method") + 
   theme_minimal() + 
-  ylim(c(0.20, 0.30))
+  ylim(c(0.25, 0.27))
 ```
 
 
@@ -297,5 +304,7 @@ Jo, Daehyun. “The interpretation bias and trap of multicenter clinical researc
 Dechartres, Agnes, et al. "Single-center trials show larger treatment effects than multicenter trials: evidence from a meta-epidemiologic study." Annals of internal medicine 155.1 (2011): 39-51.
 
 Bonate, Peter L. "Clinical trial simulation in drug development." Pharmaceutical research 17 (2000): 252-256.
+
+Luo, Jake, et al. "Population analysis of adverse events in different age groups using big clinical trials data." JMIR medical informatics 4.4 (2016): e6437
 
 3. Cheng, Adam, et al. "Conducting multicenter research in healthcare simulation: Lessons learned from the INSPIRE network." Advances in Simulation 2 (2017): 1-14.
