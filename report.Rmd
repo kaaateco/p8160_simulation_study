@@ -37,11 +37,11 @@ We evaluated three different Monte Carlo sampling methods: simple Monte Carlo (M
 
 \begin{center}
 
-$P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{N}logit^{-1}(x_i, b_i)$
+$P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{N}logit^{-1}(f(x_i, b_i))$
 
-$P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(x_i, b_i) - c^*(U(x_i, b_i)) - \mu_U)$
+$P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(f(x_i, b_i)) - c^*(U(x_i, b_i)) - \mu_U)$
 
-$P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(x_i, b_i)$
+$P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(f(x_i, b_i))$
 
 \end{center}
 
@@ -100,7 +100,7 @@ knitr::kable(p_baseline_adverse_event, digits = 6,
 
 In simple Monte Carlo sampling, random samples `b_samples` and `x_samples` are generated to estimate the overall probability of an adverse event. Firstly, the parameters $\alpha$ and $\beta$ are defined, and the logit inverse function is applied to compute the probability of an adverse event for each individual sample. The overall probability estimate is then obtained by averaging these probabilities, while the variance of the method is calculated based on the individual probability values from each sample. 
 
-Using simple Monte Carlo with n = 10000: $P_{Simple}(Adverse Event) = \frac1n \sum_{i=1}^{n}logit^{-1}(x_i, b_i)$
+Using simple Monte Carlo with n = 10000: $P_{Simple}(Adverse Event) = \frac1n \sum_{i=1}^{n}logit^{-1}(f(x_i, b_i))$
 
 ```{r message = FALSE}
 start_time_smc <- Sys.time()
@@ -125,7 +125,7 @@ cpu_time_smc <- Sys.time() - start_time_smc
 
 The Control Variates method is used to improve the efficiency of Monte Carlo estimation by reducing variance through the use of a correlated control variate. Firstly, the probability of an adverse event is estimated using the logit inverse function applied to the Patient-Level sampled covariates and Clinic-Level random effects. Then, a control variate $U$ is computed as the linear predictor before the logit transformation. The optimal correction coefficient $c^*$ is calculated based on the covariance method. Finally, the overall probability estimate is obtained by applying the control variate correction, reducing variance without introducing bias. The efficiency of this method is evaluated by comparing the mean and variance of the estimates before and after the correction.
 
-Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(x_i, b_i) - c^*(U(x_i, b_i)) - \mu_U)$, where the control variate (U) is the argument to the inverse logit function, $\alpha + b + \beta x$, where we can analytically determine the means for variables b and X. 
+Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(f(x_i, b_i)) - c^*(U(x_i, b_i)) - \mu_U)$, where the control variate (U) is the argument to the inverse logit function, $\alpha + b + \beta x$, where we can analytically determine the means for variables b and X. 
 
 ```{r message = FALSE}
 start_time_cv <- Sys.time()
@@ -165,7 +165,7 @@ The Importance Sampling method is applied to estimate the overall probability of
 
 To be more specific, the Log-Normal importance distribution is adjusted by increasing the standard deviation, while the Gamma importance distribution is modified by slightly increasing the shape parameter. After generating samples from these distributions, we computed the probability of an adverse event and adjusted each sample’s contribution using importance weights, derived as the ratio of the nominal to the importance density. The final estimate is obtained as a weighted average, and the variance of the Importance Sampling estimator is calculated to evaluate its efficiency compared to other sampling methods.
 
-Using importance sampling: $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(x_i, b_i)$, where $g_X(x_i)$ ~ Gamma(2.4, 2) and $g_B(b_i)$ ~ Log-Normal(-1, 0.6). 
+Using importance sampling: $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(f(x_i, b_i))$, where $g_X(x_i)$ ~ Gamma(2.4, 2) and $g_B(b_i)$ ~ Log-Normal(-1, 0.6). 
 
 First, we compare the nominal and importance distributions in the plots below: 
 
