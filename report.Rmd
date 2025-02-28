@@ -94,10 +94,13 @@ knitr::kable(p_baseline_adverse_event, digits = 6,
              col.names = "Probability of the Baseline Adverse Event")
 ```
 
-Using simple Monte Carlo with N = 100000: $P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{N}logit^{-1}(x_i, b_i)$
+Using simple Monte Carlo with n = 10000: $P_{Simple}(Adverse Event) = \frac1n \sum_{i=1}^{n}logit^{-1}(x_i, b_i)$
 
 ```{r message = FALSE}
 start_time_smc <- Sys.time()
+
+alpha <- -2
+beta <- 0.5
 
 logit_inverse_function <- function(x) {
   return(exp(x) / (1 + exp(x)))
@@ -115,6 +118,7 @@ cpu_time_smc <- Sys.time() - start_time_smc
 ##             col.names = "Probability of the Adverse Event of Simple MC Sampling")
 ```
 
+In Simple Monte Carlo sampling, random samples `b_samples` and `x_samples` are generated to estimate the overall probability of an adverse event. Firstly, the parameters $\alpha$ and $\beta$ are defined, and the logit inverse function is applied to compute the probability of an adverse event for each individual sample. The overall probability estimate is then obtained by averaging these probabilities, while the variance of the method is calculated based on the individual probability values from each sample.
 
 ### Task 3: Sampling using Control Variate (CV)
 
@@ -151,6 +155,8 @@ control_variate_df <- data.frame(
 ## knitr::kable(control_variate_df, digits = 10, 
 ##             caption = "Comparison of Estimates With and Without Control Variate")
 ```
+
+The Control Variates method is used to improve the efficiency of Monte Carlo estimation by reducing variance through the use of a correlated control variate. Firstly, the probability of an adverse event is estimated using the logit inverse function applied to the Patient-Level sampled covariates and Clinic-Level random effects. Then, a control variate $U$ is computed as the linear predictor before the logit transformation. The optimal correction coefficient $c^*$ is calculated based on the covariance method. Finally, the overall probability estimate is obtained by applying the control variate correction, reducing variance without introducing bias. The efficiency of this method is evaluated by comparing the mean and variance of the estimates before and after the correction.
 
 ### Task 4: Sampling using Importance Sampling (IS)
 
@@ -232,6 +238,9 @@ knitr::kable(importance_sampling_results, digits = 6,
              caption = "Importance Sampling Estimates for Adverse Event Probability")
 ```
 
+The Importance Sampling method is applied to estimate the overall probability of an adverse event by drawing samples from a carefully chosen importance distribution instead of the nominal distribution. The nominal distributions for the clinic-level random effects and patient-level covariates are modeled as Lognormal and Gamma distributions, respectively. To improve efficiency, we selected importance distributions that closely approximate the nominal distributions, covering their domains while having slightly heavier tails to ensure sufficient coverage of high-probability regions.
+
+To be more specific, the Lognormal importance distribution is adjusted by increasing the standard deviation, while the Gamma importance distribution is modified by slightly increasing the shape parameter. After generating samples from these distributions, we computed the probability of an adverse event and adjusted each sample’s contribution using importance weights, derived as the ratio of the nominal to the importance density. The final estimate is obtained as a weighted average, and the variance of the Importance Sampling estimator is calculated to evaluate its efficiency compared to other sampling methods.
 
 # Results 
 
@@ -263,6 +272,10 @@ knitr::kable(comparison_df, digits = 10,
       caption = "Comparison of Sampling Methods (Bias, Variance, and CPU Time)")
 ```
 
+All three sampling methods produce nearly unbiased estimates, with Importance Sampling demonstrating a slightly larger bias compared to Simple Monte Carlo and Control Variates. The Simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. Importance Sampling achieves the lowest variance as it samples from a more relevant distribution, focusing on high-probability regions and thereby improving estimation efficiency.
+
+In terms of computational efficiency, Simple Monte Carlo is the fastest since it involves only direct sampling and averaging. Control Variates requires additional computations to estimate correlations and adjust the variance, making it slightly more computationally expensive than Simple Monte Carlo. Importance Sampling has the highest computational cost as it requires evaluating the importance weights, normalizing them, and computing a weighted average.
+
 ### Task 6: Cumulative Convergence Plots (Extra Credit)
 
 ```{r message = FALSE, warning = FALSE}
@@ -289,6 +302,7 @@ ggplot(cumulative_convergence_df, aes(x = Sample, y = Value, color = Method)) +
   ylim(c(0.25, 0.27))
 ```
 
+The cumulative convergence plot illustrates how the estimated probability of an adverse event converges over increasing sample sizes for three different sampling methods. First, Simple Monte Carlo (blue line) demonstrates high fluctuations within the first 1000 samples, indicating the inherent variability in direct random sampling. As the sample size continues to increase, the estimate becomes more stable, but Simple Monte Carlo remains more volatile compared to the other two methods. Control Variates (red line) and Importance Sampling (green line) converge more smoothly, demonstrating their effectiveness in reducing variance. The Importance Sampling method converges more rapidly, indicating that sampling from a more relevant distribution improves efficiency. All three methods converge toward the true probability (purple dashed line), illustrating their unbiased nature. However, the differences in their convergence speed show the advantages of variance reduction techniques, with Importance Sampling and Control Variates reaching stable estimates faster than the Simple Monte Carlo sampling method.
 
 # Discussion and Practical Implications
 
@@ -296,6 +310,7 @@ The ability to effectively simulate
 
 # Conclusion
 
+Although Importance Sampling significantly reduces variance, its increased computational burden must be considered when choosing an appropriate sampling method.
 
 # References 
 
