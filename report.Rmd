@@ -87,7 +87,7 @@ ggplot(gamma_df, aes(x = values)) +
 ```
 
 
-### Task 2: Sampling using Simple Monte Carlo (MC)
+### Task 2: Sampling using Simple Monte Carlo (SMC)
 
 ```{r message = FALSE, include = FALSE}
 alpha <- -2
