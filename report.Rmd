@@ -265,6 +265,10 @@ knitr::kable(comparison_df, digits = 10,
       caption = "Comparison of Sampling Methods (Bias, Variance, and CPU Time)")
 ```
 
+All three sampling methods produce nearly unbiased estimates, with Importance Sampling demonstrating a slightly larger bias compared to Simple Monte Carlo and Control Variates. The Simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. Importance Sampling achieves the lowest variance as it samples from a more relevant distribution, focusing on high-probability regions and thereby improving estimation efficiency.
+
+In terms of computational efficiency, Simple Monte Carlo is the fastest since it involves only direct sampling and averaging. Control Variates requires additional computations to estimate correlations and adjust the variance, making it slightly more computationally expensive than Simple Monte Carlo. Importance Sampling has the highest computational cost as it requires evaluating the importance weights, normalizing them, and computing a weighted average.
+
 ### Task 6: Cumulative Convergence Plots (Extra Credit)
 
 ```{r message = FALSE, warning = FALSE}
@@ -298,6 +302,7 @@ The ability to effectively simulate
 
 # Conclusion
 
+Although Importance Sampling significantly reduces variance, its increased computational burden must be considered when choosing an appropriate sampling method.
 
 # References 
 
