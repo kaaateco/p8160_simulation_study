@@ -54,8 +54,9 @@ In the sections below, we defined functions used to run the integrations using s
 ### Task 1: Specifying Distributions
 
 Let b follow a Log-normal distribution with parameters meanlog = -1 and sdlog = 0.5, see graph below. 
+$$ b \sim \text{Lognormal}(-1, 0.5) $$
 
-Let x follows a Gamma distribution with parameters shape = 2 and rate = 2, see graph below. 
+Let x follows a Gamma distribution with parameters shape = 2 and rate = 2, see graph below. $$ x \sim \text{Gamma}(2, 2) $$
 
 >
 
