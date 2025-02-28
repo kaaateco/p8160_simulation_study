@@ -76,13 +76,13 @@ gamma_df <- data.frame(values = x_samples,
 ggplot(lognormal_df, aes(x = values)) +
   geom_density(fill = "lightblue", alpha = 0.5) +
   labs(title = "Lognormal Distribution (meanlog = -1, sdlog = 0.5)",
-       x = "Value", y = "Density") +
+       x = "b", y = "Density") +
   theme_minimal()
 
 ggplot(gamma_df, aes(x = values)) +
   geom_density(fill = "pink", alpha = 0.5) +
   labs(title = "Gamma Distribution (shape = 2, rate = 2)",
-       x = "Value", y = "Density") +
+       x = "x", y = "Density") +
   theme_minimal()
 ```
 
