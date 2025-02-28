@@ -273,7 +273,8 @@ knitr::kable(comparison_df, digits = 10,
 
 All three sampling methods produce nearly unbiased estimates, with the control variate method demonstrating a slightly smaller bias compared to the other two methods. The simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. Importance Sampling achieves the lowest variance as it samples from a more relevant distribution, focusing on high-probability regions and thereby improving estimation efficiency.
 
-In terms of computational efficiency, Simple Monte Carlo is the fastest since it involves only direct sampling and averaging. Control Variates requires additional computations to estimate correlations and adjust the variance, making it slightly more computationally expensive than Simple Monte Carlo. Importance Sampling has the highest computational cost as it requires evaluating the importance weights, normalizing them, and computing a weighted average.
+In terms of computational efficiency, Simple Monte Carlo is the fastest since it involves only direct sampling and averaging. Control Variates requires additional computations to estimate correlations and adjust the variance, making it slightly more computationally expensive than Simple Monte Carlo. Importance Sampling has the highest computational cost as it requires evaluating the importance weights, normalizing them, and computing a weighted average. Note that being twice as computationally expensive as simple Monte Carlo, the control variate method converges much faster, and therefore should require fewer Monte Carlo trials and reducing this difference in cost. 
+
 
 ### Task 6: Cumulative Convergence Plots (Extra Credit)
 
@@ -307,14 +308,15 @@ The cumulative convergence plot illustrates how the estimated probability of an 
 
 # Discussion and Practical Implications
 
-Simulation studies allow public health officials to evaluate the effect of different interventions on health outcomes. For instance, from this project, we are able to test how changes in the distributions of the demographics of patients or clinic random effects can impact the probability of adverse events overall. This information could be used to determine which patients are select for procedures, or which clinics different patients are sent to. 
+This study has shown that the use of improved sampling methods in Monte Carlo simulations of even relatively simple models of multicenter cinical trials significantly improves the convergence of predicted outcome values. This is at a cost of more complex coding and computation time, as well as the need to identify additional appropriate distributions for importance sampling and to be control variates. 
 
-The ability to effectively simulate
+Simulation studies allow investigators clinical trials to evaluate the effect of different interventions on health outcomes. For examples like the application studied in this project, the use of simulation allows us to test how changes in the distributions of the demographics of patients or clinic random effects can impact the probability of adverse events overall. Going forward, this information could be used to determine which patients are select for procedures, or which clinics different patients are sent to. The ability to effectively simulate multicenter trials also has the potential to allow us to optimize the time and monetary costs of conducting a clinical trial, speeding up the process of conducting clinical research and improving their efficiency and reliability [Bonate, 2000]. Additionally, outside of clinical trials, these methods could be generalized for wider applications in healthcare, such as for resource allocation. 
 
 
 # Conclusion
 
-Although Importance Sampling significantly reduces variance, its increased computational burden must be considered when choosing an appropriate sampling method.
+Of the methods evaluated, both the control variate method and importance sampling reducing the variance compared to simple Monte Carlo sampling, but at 2x and 4x the computational cost. Of the improved sampling methods, the control variate method converges much more quickly to the known true value, and therefore may be the most accurate and efficient. 
+
 
 # References 
 
