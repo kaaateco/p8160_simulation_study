@@ -56,7 +56,7 @@ Let x follows a Gamma distribution with parameters shape = 2 and rate = 2, see g
 
 ```{r message = FALSE, fig.align='center', out.width="100%"}
 set.seed(8160)
-n <- 100000 
+n <- 10000
 
 ## Pre-calculating b samples and x samples for use in simple MC and CV
 b_samples <- rlnorm(n, meanlog = -1, sdlog = 0.5)
@@ -93,7 +93,7 @@ knitr::kable(p_baseline_adverse_event, digits = 6,
              col.names = "Probability of the Baseline Adverse Event")
 ```
 
-Using simple Monte Carlo with n = 100000: $P_{Simple}(Adverse Event) = \frac1n \sum_{i=1}^{n}logit^{-1}(x_i, b_i)$
+Using simple Monte Carlo with n = 10000: $P_{Simple}(Adverse Event) = \frac1n \sum_{i=1}^{n}logit^{-1}(x_i, b_i)$
 
 ```{r message = FALSE}
 start_time_smc <- Sys.time()
@@ -295,6 +295,7 @@ ggplot(cumulative_convergence_df, aes(x = Sample, y = Value, color = Method)) +
   ylim(c(0.20, 0.30))
 ```
 
+The cumulative convergence plot illustrates how the estimated probability of an adverse event converges over increasing sample sizes for three different sampling methods. First, Simple Monte Carlo (blue line) demonstrates high fluctuations within the first 1000 samples, indicating the inherent variability in direct random sampling. As the sample size continues to increase, the estimate becomes more stable, but Simple Monte Carlo remains more volatile compared to the other two methods. Control Variates (red line) and Importance Sampling (green line) converge more smoothly, demonstrating their effectiveness in reducing variance. The Importance Sampling method converges more rapidly, indicating that sampling from a more relevant distribution improves efficiency. All three methods converge toward the true probability (purple dashed line), illustrating their unbiased nature. However, the differences in their convergence speed show the advantages of variance reduction techniques, with Importance Sampling and Control Variates reaching stable estimates faster than the Simple Monte Carlo sampling method.
 
 # Discussion and Practical Implications
 
