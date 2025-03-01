@@ -56,13 +56,14 @@ We evaluated three different Monte Carlo sampling methods: simple Monte Carlo (M
 
 $P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{N}logit^{-1}(f(x_i, b_i))$
 
-$P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(f(x_i, b_i)) - c^*(U(x_i, b_i)) - \mu_U)$
+$P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(f(x_i, b_i)) - c^*(U(x_i, b_i) - \mu_U))$
 
 $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(f(x_i, b_i))$
 
+{\small \textbf{where} $f(x_i, b_i) = \alpha + b_i + \beta x_i$ represents the linear predictor.}
+
 \end{center}
 
->
 
 For each method, we report the bias and variance in the predicted probability of an adverse event from each method, where the bias is calculated in comparison to the "true probability", which was estimated using a simple Monte Carlo simulation with N = 100,000,000. We also provide CPU time statistics to gauge the efficiency of each method and cumulative convergence plots to compare the convergence of each method to the "true probability". 
 
@@ -141,7 +142,7 @@ cpu_time_smc <- Sys.time() - start_time_smc
 
 The Control Variates method is used to improve the efficiency of Monte Carlo estimation by reducing variance through the use of a correlated control variate. Firstly, the probability of an adverse event is estimated using the logit inverse function applied to the Patient-Level sampled covariates and Clinic-Level random effects. Then, a control variate $U$ is computed as the linear predictor before the logit transformation. The optimal correction coefficient $c^*$ is calculated based on the covariance method. Finally, the overall probability estimate is obtained by applying the control variate correction, reducing variance without introducing bias. The efficiency of this method is evaluated by comparing the mean and variance of the estimates before and after the correction.
 
-Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(f(x_i, b_i)) - c^*(U(x_i, b_i)) - \mu_U)$, where the control variate (U) is the argument to the inverse logit function, $\alpha + b + \beta x$, where we can analytically determine the means for variables b and X. 
+Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(f(x_i, b_i)) - c^*(U(x_i, b_i) - \mu_U))$, where the control variate (U) is the argument to the inverse logit function, $\alpha + b + \beta x$, where we can analytically determine the means for variables b and X. 
 
 ```{r message = FALSE}
 start_time_cv <- Sys.time()
@@ -247,7 +248,8 @@ w <- weights(b_samples_importance, x_samples_importance)
 
 E_is <- sum(w * p_ij_is) / sum(w)
 ## Variance expression from lecture notes
-var_is <- 1/n * (mean(w^2) - mean(w)^2)
+#var_is <- 1/n * (mean(w^2) - mean(w)^2)
+var_is <- (mean((w * p_ij_is)^2) - mean(w * p_ij_is)^2) / n
 
 cpu_time_is <- Sys.time() - start_time_is
 
