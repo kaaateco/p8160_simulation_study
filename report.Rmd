@@ -18,8 +18,25 @@ A multicenter clinical trial is a trial that enrolls participants at multiple di
 
 A challenge in evaluating clinical trial methodology is the cost of conducting a trial and the accessibility of this data to external researchers. It's been long recognized that simulation studies can play a key role in designing and analyzing clinical trials by improving their efficiency and reliability [Bonate, 2000]
 
-In this project, we designed a simulation study to determine optimal Monte Carlo sampling strategies to evaluate the population-level probability of adverse events in the context of a hypothetical multicenter clinical trial. This simulated trial includes patient-level covariates and clinic-level random effects that informs a heirarchical logistic model to predict the probability of adverse events. We evaluated the bias and variance in the predicted probability of an adverse event of three sampling methods: simple Monte Carlo (MC), MC with control variates (CV), and MC with importance sampling (IS). We also compare the CPU time statistics for each method. 
+In this project, we designed a simulation study to determine optimal Monte Carlo sampling strategies to evaluate the population-level probability of adverse events in the context of a hypothetical multicenter clinical trial. This simulated trial includes patient-level covariates and clinic-level random effects that informs a heirarchical logistic model to predict the probability of adverse events. 
 
+Probability of an adverse event for patient i in clinic j:
+
+\begin{center}
+
+$p_{i,j} = \text{logit}^{-1}(\alpha + b_j + \beta X_i)$
+
+\end{center}
+
+$X_i$: Each patient $i$ has a continuous risk factor $X_i$ (disease severity score)
+
+$b_j$: Random effects at the clinic level
+
+$\alpha$: The baseline log-odds of an adverse event when $X_i = 0$ and there is no clinic-level random effect
+
+$\beta$: The effect size of the patient-level covariate $X_i$, controlling for clinic-level random effects
+
+We evaluated the bias and variance in the predicted probability of an adverse event of three sampling methods: simple Monte Carlo (MC), MC with control variates (CV), and MC with importance sampling (IS). We also compare the CPU time statistics for each method. 
 
 # Statistical Methods 
 
@@ -57,8 +74,6 @@ Let b follow a Log-normal distribution with parameters meanlog = -1 and sdlog = 
 $$ b \sim \text{Lognormal}(-1, 0.5) $$
 
 Let x follows a Gamma distribution with parameters shape = 2 and rate = 2, see graph below. $$ x \sim \text{Gamma}(2, 2) $$
-
->
 
 ```{r message = FALSE, fig.align='center', out.width="85%"}
 set.seed(8160)
@@ -144,10 +159,10 @@ var_U <- var(U)
 E_U_exact <- alpha + exp(-1 + (0.5^2)/2) + beta*1
 
 cov_Y_U <- cov(Y, U)
-c_star <- -cov_Y_U / var_U 
+c_star <- cov_Y_U / var_U 
 
 ## Applying covariate correction
-Y_cv <- Y + c_star * (U - E_U_exact)
+Y_cv <- Y - c_star * (U - E_U_exact)
 E_Y_cv <- mean(Y_cv)
 var_Y_cv <- var_Y - (cov_Y_U ^ 2) / var_U
 
