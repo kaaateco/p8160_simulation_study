@@ -183,7 +183,7 @@ The Importance Sampling method is applied to estimate the overall probability of
 
 To be more specific, the Log-Normal importance distribution is adjusted by increasing the standard deviation, while the Gamma importance distribution is modified by slightly increasing the shape parameter. After generating samples from these distributions, we computed the probability of an adverse event and adjusted each sample’s contribution using importance weights, derived as the ratio of the nominal to the importance density. The final estimate is obtained as a weighted average, and the variance of the Importance Sampling estimator is calculated to evaluate its efficiency compared to other sampling methods.
 
-Using importance sampling: $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(f(x_i, b_i))$, where $X$ ~ Gamma(2.4, 2) and $b$ ~ Lognormal(-1, 0.6). 
+Using importance sampling: $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(f(x_i, b_i))$, where $X$ ~ Inverse-Gamma(2, 2.6) and $b$ ~ Inverse-Gamma(4, 2). 
 
 First, we compare the nominal and importance distributions in the plots below: 
 
