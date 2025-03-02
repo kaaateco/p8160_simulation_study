@@ -10,6 +10,7 @@ output: pdf_document
 library(tidyverse)
 library(ggplot2)
 library(MASS)
+library(extraDistr)
 ```
 
 # Introduction and Background
@@ -186,13 +187,14 @@ Using importance sampling: $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{
 
 First, we compare the nominal and importance distributions in the plots below: 
 
-```{r message = FALSE, fig.align='center', out.width="87%"}
+```{r message = FALSE, fig.align='center', out.width="87%", warning = FALSE}
 set.seed(8160)
+
 
 b_samples_nominal <- rlnorm(n, meanlog = -1, sdlog = 0.5)
 x_samples_nominal <- rgamma(n, shape = 2, rate = 2)
-b_samples_importance <- rlnorm(n, meanlog = -1, sdlog = 0.6)
-x_samples_importance <- rgamma(n, shape = 2.4, rate = 2)
+b_samples_importance <- rinvgamma(n, alpha = 4, beta = 2)
+x_samples_importance <- rinvgamma(n, alpha = 2, beta = 2.6)
 
 b_df <- data.frame(Value = c(b_samples_nominal, b_samples_importance),
                    Distribution = rep(c("Nominal (f_b)", "Importance (g_b)"), each = n))
@@ -204,13 +206,15 @@ ggplot(b_df, aes(x = Value, fill = Distribution)) +
   geom_density(alpha = 0.5) +
   labs(title = "Comparison of Nominal and Importance Distributions (b)",
        x = "b Value", y = "Density") +
-  theme_minimal()
+  theme_minimal() + 
+  xlim(c(0, 5))
 
 ggplot(x_df, aes(x = Value, fill = Distribution)) +
   geom_density(alpha = 0.5) +
   labs(title = "Comparison of Nominal and Importance Distributions (x)",
        x = "x Value", y = "Density") +
-  theme_minimal()
+  theme_minimal() + 
+  xlim(c(0, 5))
 ```
 
 Here, we implement the importance sampling: 
@@ -230,18 +234,18 @@ f_x <- function(x) {
 
 # Importance Distribution
 g_b <- function(b) {
-  return(dlnorm(b, meanlog = -1, sdlog = 0.6))
+  return(dinvgamma(n, alpha = 4, beta = 2))
 }
 g_x <- function(x) {
-  return(dgamma(x, shape = 2.4, rate = 2))
+  return(dinvgamma(n, alpha = 2, beta = 2.6))
 }
 
 weights <- function(b, x) {
   return((f_b(b) * f_x(x)) / (g_b(b) * g_x(x)))
 }
 
-b_samples_importance <- rlnorm(n, meanlog = -1, sdlog = 0.6)
-x_samples_importance <- rgamma(n, shape = 2.4, rate = 2)
+b_samples_importance <- rinvgamma(n, alpha = 4, beta = 2)
+x_samples_importance <- rinvgamma(n, alpha = 2, beta = 2.6)
 
 p_ij_is <- logit_inverse_function(alpha + b_samples_importance + beta * x_samples_importance) 
 w <- weights(b_samples_importance, x_samples_importance)
@@ -250,14 +254,16 @@ E_is <- sum(w * p_ij_is) / sum(w)
 ## Variance expression
 var_is <- sum(w * (p_ij_is - E_is)^2) / sum(w)
 
-cpu_time_is <- Sys.time() - start_time_is
+#cpu_time_is <- Sys.time() - start_time_is
 
 importance_sampling_results <- data.frame(
   Estimates = c("Mean", "Variance"),
   Value = c(E_is, var_is)
 )
-
+E_is
+cpu_time_is <- Sys.time() - start_time_is
 ```
+
 
 # Results 
 
@@ -288,7 +294,7 @@ knitr::kable(comparison_df, digits = 10,
       caption = "Comparison of Sampling Methods (Bias, Variance, and CPU Time)")
 ```
 
-All three sampling methods produce nearly unbiased estimates, with the control variate method demonstrating a slightly smaller bias compared to the other two methods. The simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. 
+All three sampling methods produce nearly unbiased estimates, with the control variate method demonstrating a slightly smaller bias compared to the other two methods. The simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. Importance Sampling achieves the lowest variance as it samples from a more relevant distribution, focusing on high-probability regions and thereby improving estimation efficiency.
 
 In terms of computational efficiency, Simple Monte Carlo is the fastest since it involves only direct sampling and averaging. Control Variates requires additional computations to estimate correlations and adjust the variance, making it slightly more computationally expensive than Simple Monte Carlo. Importance Sampling has the highest computational cost as it requires evaluating the importance weights, normalizing them, and computing a weighted average. Note that even being more computationally expensive as simple Monte Carlo, the control variate method converges much faster, and therefore should require fewer Monte Carlo trials and reducing this difference in cost. 
 
@@ -310,7 +316,7 @@ cumulative_convergence_df <- data.frame(
 ggplot(cumulative_convergence_df, aes(x = Sample, y = Value, color = Method)) +
   geom_line(size = 0.5) +
   geom_hline(yintercept = p_adverse_event_true, linetype = "dashed", 
-             color = "purple", size = 1) +
+             color = "purple", size = 1) +  
   annotate("text", x = 500, y = p_adverse_event_true + 0.001, 
            label = "True Value", size = 4, color = "purple") + 
   labs(title = "Cumulative Convergence of Different Sampling Methods",
