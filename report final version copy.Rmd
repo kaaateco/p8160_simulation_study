@@ -248,7 +248,7 @@ w <- weights(b_samples_importance, x_samples_importance)
 
 E_is <- sum(w * p_ij_is) / sum(w)
 ## Variance expression
-var_is <- (mean((w * p_ij_is)^2) - mean(w * p_ij_is)^2) / n
+var_is <- sum(w * (p_ij_is - E_is)^2) / sum(w)
 
 cpu_time_is <- Sys.time() - start_time_is
 
@@ -288,7 +288,7 @@ knitr::kable(comparison_df, digits = 10,
       caption = "Comparison of Sampling Methods (Bias, Variance, and CPU Time)")
 ```
 
-All three sampling methods produce nearly unbiased estimates, with the control variate method demonstrating a slightly smaller bias compared to the other two methods. The simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. Importance Sampling achieves the lowest variance as it samples from a more relevant distribution, focusing on high-probability regions and thereby improving estimation efficiency.
+All three sampling methods produce nearly unbiased estimates, with the control variate method demonstrating a slightly smaller bias compared to the other two methods. The simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. 
 
 In terms of computational efficiency, Simple Monte Carlo is the fastest since it involves only direct sampling and averaging. Control Variates requires additional computations to estimate correlations and adjust the variance, making it slightly more computationally expensive than Simple Monte Carlo. Importance Sampling has the highest computational cost as it requires evaluating the importance weights, normalizing them, and computing a weighted average. Note that even being more computationally expensive as simple Monte Carlo, the control variate method converges much faster, and therefore should require fewer Monte Carlo trials and reducing this difference in cost. 
 
@@ -310,7 +310,7 @@ cumulative_convergence_df <- data.frame(
 ggplot(cumulative_convergence_df, aes(x = Sample, y = Value, color = Method)) +
   geom_line(size = 0.5) +
   geom_hline(yintercept = p_adverse_event_true, linetype = "dashed", 
-             color = "purple", size = 1) +  
+             color = "purple", size = 1) +
   annotate("text", x = 500, y = p_adverse_event_true + 0.001, 
            label = "True Value", size = 4, color = "purple") + 
   labs(title = "Cumulative Convergence of Different Sampling Methods",
