@@ -332,7 +332,7 @@ Simulation studies allow investigators clinical trials to evaluate the effect of
 
 # Conclusion
 
-Among the three evaluated methods, both Control Variates (CV) and Importance Sampling (IS) effectively reduce variance compared to Simple Monte Carlo (SMC), albeit with a moderate increase in computational cost. CV requires approximately 1.4 times the CPU time of SMC, while IS takes about 1.7 times longer. The Control Variates method achieves significant variance reduction—lowering it by a factor of 90 compared to SMC—while maintaining a bias close to zero, making it a computationally efficient alternative. IS also reduces variance, but it has a slightly higher bias and increased computational cost, which might mask its advantage. Based on the cumulative convergence plot, CV stabilizes more quickly and smoothly around the true value compared to IS and SMC, making it the most accurate and efficient method among the three sampling methods.
+Among the three evaluated methods, both Control Variates (CV) and Importance Sampling (IS) effectively reduce variance compared to Simple Monte Carlo (SMC), albeit with a moderate increase in computational cost. The Control Variates method achieves significant variance reduction—lowering it by a factor of 90 compared to SMC—while maintaining a bias close to zero, making it a computationally efficient alternative. IS also reduces variance, but it has a slightly higher bias and increased computational cost, which might mask its advantage. Based on the cumulative convergence plot, CV stabilizes more quickly and smoothly around the true value compared to IS and SMC, making it the most accurate and efficient method among the three sampling methods.
 
 
 # References 
