@@ -254,14 +254,12 @@ E_is <- sum(w * p_ij_is) / sum(w)
 ## Variance expression
 var_is <- sum(w * (p_ij_is - E_is)^2) / sum(w)
 
-#cpu_time_is <- Sys.time() - start_time_is
+cpu_time_is <- Sys.time() - start_time_is
 
 importance_sampling_results <- data.frame(
   Estimates = c("Mean", "Variance"),
   Value = c(E_is, var_is)
 )
-E_is
-cpu_time_is <- Sys.time() - start_time_is
 ```
 
 
