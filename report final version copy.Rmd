@@ -117,7 +117,7 @@ knitr::kable(p_baseline_adverse_event, digits = 6,
 
 In simple Monte Carlo sampling, random samples `b_samples` and `x_samples` are generated to estimate the overall probability of an adverse event. Firstly, the parameters $\alpha$ and $\beta$ are defined, and the logit inverse function is applied to compute the probability of an adverse event for each individual sample. The overall probability estimate is then obtained by averaging these probabilities, while the variance of the method is calculated based on the individual probability values from each sample. 
 
-Using simple Monte Carlo with n = 10000: $P_{Simple}(Adverse Event) = \frac1n \sum_{i=1}^{n}logit^{-1}(f(x_i, b_i))$
+Using simple Monte Carlo with n = 10000: $P_{Simple}(Adverse Event) = \frac1N \sum_{i=1}^{n}logit^{-1}(f(x_i, b_i))$
 
 ```{r message = FALSE}
 start_time_smc <- Sys.time()
