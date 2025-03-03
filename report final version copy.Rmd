@@ -10,6 +10,7 @@ output: pdf_document
 library(tidyverse)
 library(ggplot2)
 library(MASS)
+library(extraDistr)
 ```
 
 # Introduction and Background
@@ -74,7 +75,7 @@ In the sections below, we defined functions used to run the integrations using s
 Let b follow a Log-normal distribution with parameters meanlog = -1 and sdlog = 0.5, see graph below. 
 $$ b \sim \text{Lognormal}(-1, 0.5) $$
 
-Let x follows a Gamma distribution with parameters shape = 2 and rate = 2, see graph below. $$ x \sim \text{Gamma}(2, 2) $$
+Let x follows a Gamma distribution with parameters shape = 2 and rate = 2, see graph below. $$ X \sim \text{Gamma}(2, 2) $$
 
 ```{r message = FALSE, fig.align='center', out.width="85%"}
 set.seed(8160)
@@ -138,6 +139,7 @@ var_smc <- var(p_ij)
 cpu_time_smc <- Sys.time() - start_time_smc
 ```
 
+
 ### Task 3: Sampling using Control Variate (CV)
 
 The Control Variates method is used to improve the efficiency of Monte Carlo estimation by reducing variance through the use of a correlated control variate. Firstly, the probability of an adverse event is estimated using the logit inverse function applied to the Patient-Level sampled covariates and Clinic-Level random effects. Then, a control variate $U$ is computed as the linear predictor before the logit transformation. The optimal correction coefficient $c^*$ is calculated based on the covariance method. Finally, the overall probability estimate is obtained by applying the control variate correction, reducing variance without introducing bias. The efficiency of this method is evaluated by comparing the mean and variance of the estimates before and after the correction.
@@ -145,11 +147,11 @@ The Control Variates method is used to improve the efficiency of Monte Carlo est
 Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(f(x_i, b_i)) - c^*(U(x_i, b_i) - \mu_U))$, where the control variate (U) is the argument to the inverse logit function, $\alpha + b + \beta x$, where we can analytically determine the means for variables b and X. 
 
 ```{r message = FALSE}
-start_time_cv <- Sys.time()
-
 Y <- logit_inverse_function(alpha + b_samples + beta * x_samples)
 E_Y <- mean(Y)
 var_Y <- var(Y)
+
+start_time_cv <- Sys.time()
 
 ## U is the logit transformed Y (i.e. the original argument to the inverse logit)
 U <- alpha + b_samples + beta * x_samples
@@ -176,23 +178,24 @@ control_variate_df <- data.frame(
 )
 ```
 
+
 ### Task 4: Sampling using Importance Sampling (IS)
 
 The Importance Sampling method is applied to estimate the overall probability of an adverse event by drawing samples from a carefully chosen importance distribution instead of the nominal distribution. The nominal distributions for the clinic-level random effects and patient-level covariates are modeled as Log-Normal and Gamma distributions, respectively. To improve efficiency, we selected importance distributions that closely approximate the nominal distributions, covering their domains while having slightly heavier tails to ensure sufficient coverage of high-probability regions.
 
 To be more specific, the Log-Normal importance distribution is adjusted by increasing the standard deviation, while the Gamma importance distribution is modified by slightly increasing the shape parameter. After generating samples from these distributions, we computed the probability of an adverse event and adjusted each sample’s contribution using importance weights, derived as the ratio of the nominal to the importance density. The final estimate is obtained as a weighted average, and the variance of the Importance Sampling estimator is calculated to evaluate its efficiency compared to other sampling methods.
 
-Using importance sampling: $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(f(x_i, b_i))$, where $X$ ~ Gamma(2.4, 2) and $b$ ~ Lognormal(-1, 0.6). 
+Using importance sampling: $P_{IS}(Adverse Event) = \frac1N \sum_{i=1}^{N}\frac{f_X(x_i)f_B(b_i)}{g_X(x_i)g_B(b_i))}logit^{-1}(f(x_i, b_i))$, where $X$ ~ Inverse-Gamma(2, 2.6) and $b$ ~ Inverse-Gamma(4, 2). 
 
 First, we compare the nominal and importance distributions in the plots below: 
 
-```{r message = FALSE, fig.align='center', out.width="87%"}
+```{r message = FALSE, fig.align='center', out.width="82%", warning = FALSE}
 set.seed(8160)
 
 b_samples_nominal <- rlnorm(n, meanlog = -1, sdlog = 0.5)
 x_samples_nominal <- rgamma(n, shape = 2, rate = 2)
-b_samples_importance <- rlnorm(n, meanlog = -1, sdlog = 0.6)
-x_samples_importance <- rgamma(n, shape = 2.4, rate = 2)
+b_samples_importance <- rinvgamma(n, alpha = 4, beta = 2)
+x_samples_importance <- rinvgamma(n, alpha = 2, beta = 2.6)
 
 b_df <- data.frame(Value = c(b_samples_nominal, b_samples_importance),
                    Distribution = rep(c("Nominal (f_b)", "Importance (g_b)"), each = n))
@@ -204,13 +207,15 @@ ggplot(b_df, aes(x = Value, fill = Distribution)) +
   geom_density(alpha = 0.5) +
   labs(title = "Comparison of Nominal and Importance Distributions (b)",
        x = "b Value", y = "Density") +
-  theme_minimal()
+  theme_minimal() + 
+  xlim(c(0, 5))
 
 ggplot(x_df, aes(x = Value, fill = Distribution)) +
   geom_density(alpha = 0.5) +
   labs(title = "Comparison of Nominal and Importance Distributions (x)",
        x = "x Value", y = "Density") +
-  theme_minimal()
+  theme_minimal() + 
+  xlim(c(0, 5))
 ```
 
 Here, we implement the importance sampling: 
@@ -230,18 +235,18 @@ f_x <- function(x) {
 
 # Importance Distribution
 g_b <- function(b) {
-  return(dlnorm(b, meanlog = -1, sdlog = 0.6))
+  return(dinvgamma(n, alpha = 4, beta = 2))
 }
 g_x <- function(x) {
-  return(dgamma(x, shape = 2.4, rate = 2))
+  return(dinvgamma(n, alpha = 2, beta = 2.6))
 }
 
 weights <- function(b, x) {
   return((f_b(b) * f_x(x)) / (g_b(b) * g_x(x)))
 }
 
-b_samples_importance <- rlnorm(n, meanlog = -1, sdlog = 0.6)
-x_samples_importance <- rgamma(n, shape = 2.4, rate = 2)
+b_samples_importance <- rinvgamma(n, alpha = 4, beta = 2)
+x_samples_importance <- rinvgamma(n, alpha = 2, beta = 2.6)
 
 p_ij_is <- logit_inverse_function(alpha + b_samples_importance + beta * x_samples_importance) 
 w <- weights(b_samples_importance, x_samples_importance)
@@ -256,8 +261,8 @@ importance_sampling_results <- data.frame(
   Estimates = c("Mean", "Variance"),
   Value = c(E_is, var_is)
 )
-
 ```
+
 
 # Results 
 
@@ -288,14 +293,15 @@ knitr::kable(comparison_df, digits = 10,
       caption = "Comparison of Sampling Methods (Bias, Variance, and CPU Time)")
 ```
 
-All three sampling methods produce nearly unbiased estimates, with the control variate method demonstrating a slightly smaller bias compared to the other two methods. The simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. 
+All three sampling methods produce nearly unbiased estimates, with the control variate method demonstrating a slightly smaller bias compared to the other two methods. The simple Monte Carlo method has the highest variance among the three because it relies solely on independent random sampling without any variance reduction techniques. The Control Variates method reduces variance by incorporating a correlated variable to adjust the estimate. Importance Sampling achieves the second lowest variance as it samples from a more relevant distribution, focusing on high-probability regions and thereby improving estimation efficiency.
 
-In terms of computational efficiency, Simple Monte Carlo is the fastest since it involves only direct sampling and averaging. Control Variates requires additional computations to estimate correlations and adjust the variance, making it slightly more computationally expensive than Simple Monte Carlo. Importance Sampling has the highest computational cost as it requires evaluating the importance weights, normalizing them, and computing a weighted average. Note that even being more computationally expensive as simple Monte Carlo, the control variate method converges much faster, and therefore should require fewer Monte Carlo trials and reducing this difference in cost. 
+In terms of computational efficiency, Simple Monte Carlo is the fastest since it involves only direct sampling and averaging. Control Variates requires additional computations to estimate correlations and adjust the variance, making it slightly more computationally expensive than Simple Monte Carlo. Importance Sampling has the highest computational cost as it requires evaluating the importance weights, normalizing them, and computing a weighted average. Note that while the control variate method is more computationally expensive than simple Monte Carlo, it converges much faster, potentially requiring fewer Monte Carlo trials and thereby reducing the overall computational cost.
 
 
 ### Task 6: Cumulative Convergence Plots (Extra Credit)
 
 ```{r message = FALSE, warning = FALSE}
+set.seed(8160)
 cumulative_mc <- cumsum(p_ij) / seq_along(p_ij)
 cumulative_cv <- cumsum(Y_cv) / seq_along(Y_cv)
 cumulative_is <- cumsum(w * p_ij_is) / cumsum(w) 
@@ -310,7 +316,7 @@ cumulative_convergence_df <- data.frame(
 ggplot(cumulative_convergence_df, aes(x = Sample, y = Value, color = Method)) +
   geom_line(size = 0.5) +
   geom_hline(yintercept = p_adverse_event_true, linetype = "dashed", 
-             color = "purple", size = 1) +
+             color = "purple", size = 1) +  
   annotate("text", x = 500, y = p_adverse_event_true + 0.001, 
            label = "True Value", size = 4, color = "purple") + 
   labs(title = "Cumulative Convergence of Different Sampling Methods",
@@ -321,7 +327,7 @@ ggplot(cumulative_convergence_df, aes(x = Sample, y = Value, color = Method)) +
   ylim(c(0.25, 0.27))
 ```
 
-The cumulative convergence plot illustrates how the estimated probability of an adverse event converges over increasing sample sizes for three different sampling methods. First, Simple Monte Carlo (blue line) and Importance Sampling (green line) demonstrate high fluctuations within the first 2500 samples. As the sample size continues to increase, the estimates becomes more stable, but towards the end, simple Monte Carlo remains more volatile compared to the other two methods. The Control Variate method (red line) remains very smooth and close to the true value after the first 1000 samples. All three methods converge close to the true probability (purple dashed line), illustrating their unbiased nature. However, the differences in their convergence speed show the advantages of variance reduction techniques, and overall it seems that the control variate method is the most consistent across all samples. 
+The cumulative convergence plot illustrates how the estimated probability of an adverse event converges over increasing sample sizes for three different sampling methods. First, Simple Monte Carlo (blue line) and Importance Sampling (green line) demonstrate high fluctuations within the first 2500 samples. As the sample size continues to increase, the estimates becomes more stable, but towards the end, simple Monte Carlo remains more volatile compared to the other two methods. The Control Variate method (red line) remains very smooth and close to the true value after the first 1000 samples. All three methods converge close to the true probability (purple dashed line), illustrating their unbiased nature. However, the differences in their convergence speed show the advantages of variance reduction techniques, and overall it seems that the control variate method is the most stable across all samples. 
 
 # Discussion and Practical Implications
 
@@ -332,7 +338,7 @@ Simulation studies allow investigators clinical trials to evaluate the effect of
 
 # Conclusion
 
-Among the three evaluated methods, both Control Variates (CV) and Importance Sampling (IS) effectively reduce variance compared to Simple Monte Carlo (SMC), albeit with a moderate increase in computational cost. The Control Variates method achieves significant variance reduction, achieving 1/90th the variance of SMC, while maintaining a bias close to zero, making it a computationally efficient alternative. IS also reduces variance, but it has a slightly higher bias and increased computational cost, which might mask its advantage. Based on the cumulative convergence plot, CV stabilizes more quickly and smoothly around the true value compared to IS and SMC, making it the most accurate and efficient method among the three sampling methods.
+Among the three evaluated methods, both Control Variates (CV) and Importance Sampling (IS) effectively reduce variance compared to Simple Monte Carlo (SMC), albeit with a moderate increase in computational cost. The Control Variates method achieves significant variance reduction—lowering it by a factor of 90 compared to SMC—while maintaining a bias close to zero, making it a computationally efficient alternative. IS also reduces variance, but it has a slightly higher bias and increased computational cost, which might mask its advantage. Based on the cumulative convergence plot, CV stabilizes more quickly and smoothly around the true value compared to IS and SMC, making it the most accurate and efficient method among the three sampling methods.
 
 
 # References 

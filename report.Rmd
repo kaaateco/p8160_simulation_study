@@ -249,7 +249,7 @@ w <- weights(b_samples_importance, x_samples_importance)
 E_is <- sum(w * p_ij_is) / sum(w)
 ## Variance expression from lecture notes
 #var_is <- 1/n * (mean(w^2) - mean(w)^2)
-var_is <- (mean((w * p_ij_is)^2) - mean(w * p_ij_is)^2) / n
+var_is <- (mean((w * p_ij_is)^2) - mean(w * p_ij_is)^2) / sum(w)
 
 cpu_time_is <- Sys.time() - start_time_is
 
