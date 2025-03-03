@@ -139,6 +139,7 @@ var_smc <- var(p_ij)
 cpu_time_smc <- Sys.time() - start_time_smc
 ```
 
+
 ### Task 3: Sampling using Control Variate (CV)
 
 The Control Variates method is used to improve the efficiency of Monte Carlo estimation by reducing variance through the use of a correlated control variate. Firstly, the probability of an adverse event is estimated using the logit inverse function applied to the Patient-Level sampled covariates and Clinic-Level random effects. Then, a control variate $U$ is computed as the linear predictor before the logit transformation. The optimal correction coefficient $c^*$ is calculated based on the covariance method. Finally, the overall probability estimate is obtained by applying the control variate correction, reducing variance without introducing bias. The efficiency of this method is evaluated by comparing the mean and variance of the estimates before and after the correction.
@@ -176,6 +177,7 @@ control_variate_df <- data.frame(
   With_Control_Variate = c(E_Y_cv, var_Y_cv)
 )
 ```
+
 
 ### Task 4: Sampling using Importance Sampling (IS)
 
