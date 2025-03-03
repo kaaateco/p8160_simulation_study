@@ -301,6 +301,7 @@ In terms of computational efficiency, Simple Monte Carlo is the fastest since it
 ### Task 6: Cumulative Convergence Plots (Extra Credit)
 
 ```{r message = FALSE, warning = FALSE}
+set.seed(8160)
 cumulative_mc <- cumsum(p_ij) / seq_along(p_ij)
 cumulative_cv <- cumsum(Y_cv) / seq_along(Y_cv)
 cumulative_is <- cumsum(w * p_ij_is) / cumsum(w) 
