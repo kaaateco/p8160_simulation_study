@@ -147,11 +147,11 @@ The Control Variates method is used to improve the efficiency of Monte Carlo est
 Using Monte Carlo with Control Variate: $P_{CV}(Adverse Event) = \frac1N \sum_{i=1}^{N}(logit^{-1}(f(x_i, b_i)) - c^*(U(x_i, b_i) - \mu_U))$, where the control variate (U) is the argument to the inverse logit function, $\alpha + b + \beta x$, where we can analytically determine the means for variables b and X. 
 
 ```{r message = FALSE}
-start_time_cv <- Sys.time()
-
 Y <- logit_inverse_function(alpha + b_samples + beta * x_samples)
 E_Y <- mean(Y)
 var_Y <- var(Y)
+
+start_time_cv <- Sys.time()
 
 ## U is the logit transformed Y (i.e. the original argument to the inverse logit)
 U <- alpha + b_samples + beta * x_samples
@@ -191,7 +191,6 @@ First, we compare the nominal and importance distributions in the plots below:
 
 ```{r message = FALSE, fig.align='center', out.width="87%", warning = FALSE}
 set.seed(8160)
-
 
 b_samples_nominal <- rlnorm(n, meanlog = -1, sdlog = 0.5)
 x_samples_nominal <- rgamma(n, shape = 2, rate = 2)
